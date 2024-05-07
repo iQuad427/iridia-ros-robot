@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>experiments_utils</name>
+  <version>0.0.0</version>
+  <description>
+    The experiments_utils package goal is to land useful functions for the experiments.
+    It also aims at holding all the different messages that could be required to communicate
+    between the different ROS nodes.
+  </description>
+
+  <maintainer email="quentin.roels@gmail.com">Quentin Roels</maintainer>
+
+  <license>MIT</license>
+
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>rospy</build_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+
+  <export></export>
+</package>
