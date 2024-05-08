@@ -1,17 +1,10 @@
 <launch>
-    <!-- TODO: remove the need for the virtual environment, not required for robot use -->
-    <arg name="venv" value="/home/quentin/Dev/argos3-ros-triangulation/venv/bin/python3" />
-
-    <arg name="output_dir" value="/home/quentin/Dev/iridia-ros-robots/src/experiments_utils/output" />
-    <arg name="output_file" value="experiment" />
-
     <arg name="simulation" value="False" />
 
-    <arg name="resp_port" value="/dev/ttyACM0" />
-    <arg name="init_port" value="/dev/ttyACM1" />
+    <arg name="resp_port" value="/dev/ttyACM1" />
+    <arg name="init_port" value="/dev/ttyACM0" />
 
-    <arg name="experiment_duration" default="60" />
-
-    <node pkg="ros_utils" type="experiment_manager.py" name="experiment_manager" output="screen" cwd="node" launch-prefix="$(arg venv)" args="$(arg experiment_duration)" ></node>
-    <node pkg="module_utils" type="sensor_measurements.py" name="init_sensor_measurements" output="screen" cwd="node" launch-prefix="$(arg venv)" args="$(arg simulation) $(arg resp_port) $(arg init_port) $(arg output_dir) $(arg output_file)" ></node>
+    <node pkg="ros_utils" type="odometry_republisher.py" name="odometry_republisher" output="screen" cwd="node" ></node>
+    <node pkg="ros_utils" type="sensor_measurements.py" name="resp_sensor_measurements" output="screen" cwd="node" args="resp $(arg resp_port)" ></node>
+    <node pkg="ros_utils" type="sensor_measurements.py" name="init_sensor_measurements" output="screen" cwd="node" args="init $(arg init_port)" ></node>
 </launch>
