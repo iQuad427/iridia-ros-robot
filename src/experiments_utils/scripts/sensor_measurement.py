@@ -28,8 +28,8 @@ def signal_handler(sig, frame):
 def talker():
     simulation = True if sys.argv[1] == "True" else False
 
-    module_type = sys.argv[2]
-    module_port = sys.argv[3]
+    resp_module_port = sys.argv[2]
+    init_module_port = sys.argv[3]
 
     output_dir = sys.argv[4]
     output_file = sys.argv[5]
@@ -48,15 +48,12 @@ def talker():
     rospy.Subscriber('manager_command', Manage, callback)
 
     # Publish the read distances
-    publisher = rospy.Publisher(
-        f'{module_type}/sensor_read',
-        Distances,
-        queue_size=1000
-    )
+    publisher = rospy.Publisher(f'sensor_read', Distances, queue_size=1000)
 
     if not simulation:
         try:
-            module = DWM(port=module_port)
+            resp_module = DWM(port=resp_module_port)
+            init_module = DWM(port=init_module_port)
         except serial.SerialException as e:
             raise ValueError("Couldn't open serial port", e)
 
@@ -64,13 +61,17 @@ def talker():
             start = datetime.datetime.now()
 
             while not rospy.is_shutdown() and not stop:
-                line: str = module.read()
+                resp_line: str = resp_module.read()
+                init_line: str = init_module.read()
 
-                f.write(f"{(datetime.datetime.now() - start).total_seconds()}&{line}")
-                msg, faulty_frame = parse_distances(line)
+                timestamp = (datetime.datetime.now() - start).total_seconds()
 
-                if not faulty_frame:
-                    publisher.publish(msg)
+                f.write(f"{timestamp}&{init_line}\n{timestamp}&{resp_line}\n")
+                for line in [init_line, resp_line]:
+                    msg, faulty_frame = parse_distances(line)
+
+                    if not faulty_frame:
+                        publisher.publish(msg)
     else:
         with open(f"{output_dir}/{output_file}", "r") as f:
             # Read file, line by line and output only if timestamp is reached
