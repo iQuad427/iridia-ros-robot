@@ -1,5 +1,6 @@
 
 import serial
+import math
 
 from experiments_utils.msg import Distance, Distances, Odometry, Positions
 
@@ -64,46 +65,48 @@ def parse_distances(line: str) -> Distances:
     return msg, faulty_frame
 
 
-def unparse_distances(msg: Distances) -> str:
-    line = f"{chr(msg.robot_id)}=0:100"
-    for data in msg.ranges:
-        if chr(data.other_robot_id) != chr(msg.robot_id):
-            line += f",{chr(data.other_robot_id)}={data.distance}:{data.certainty}"
-    return f"{line}"
+def euler_from_quaternion(x, y, z, w):
+    """
+    Convert a quaternion into euler angles (roll, pitch, yaw)
+    roll is rotation around x in radians (counterclockwise)
+    pitch is rotation around y in radians (counterclockwise)
+    yaw is rotation around z in radians (counterclockwise)
+    """
+    t0 = 2.0 * (w * x + y * z)
+    t1 = 1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+
+    t2 = 2.0 * (w * y - z * x)
+    t2 = 1.0 if t2 > 1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+
+    t3 = 2.0 * (w * z + x * y)
+    t4 = 1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+
+    return roll_x, pitch_y, yaw_z  # in radians
 
 
-def parse_positions(line: str) -> Positions:
-    msg = Positions()
-    msg.odometry_data = []
+def euler_to_quaternion(roll, pitch, yaw):
+    """
+    Convert euler angles to quaternion
+    roll is rotation around x in radians (counterclockwise)
+    pitch is rotation around y in radians (counterclockwise)
+    yaw is rotation around z in radians (counterclockwise)
+    """
+    cy = math.cos(yaw * 0.5)
+    sy = math.sin(yaw * 0.5)
+    cp = math.cos(pitch * 0.5)
+    sp = math.sin(pitch * 0.5)
+    cr = math.cos(roll * 0.5)
+    sr = math.sin(roll * 0.5)
 
-    faulty_frame = False
+    w = cy * cp * cr + sy * sp * sr
+    x = cy * cp * sr - sy * sp * cr
+    y = sy * cp * sr + cy * sp * cr
+    z = sy * cp * cr - cy * sp * sr
 
-    infos = line.split("#")
-
-    if len(infos) > 1:
-        for info in infos:
-            agent_id, positions, orientations = info.split(":")
-            x, y, z = [float(i) for i in positions.split(",")]
-            a, b, c, d = [float(j) for j in orientations.split(",")]
-
-            msg.odometry_data.append(
-                Odometry(
-                    id=ord(agent_id),
-                    x=x, y=y, z=z,
-                    a=a, b=b, c=c, d=d
-                )
-            )
-    else:
-        faulty_frame = True
-
-    return msg, faulty_frame
+    return x, y, z, w
 
 
-def unparse_positions(msg: Positions) -> str:
-    line = f""
-    for position in msg.odometry_data:
-        if line:
-            line += "#"
-        # TODO: add the orientation information
-        line += f"{chr(position.id)}:{position.x},{position.y},{position.z}:{position.a},{position.b},{position.c},{position.d}"
-    return f"{line}"

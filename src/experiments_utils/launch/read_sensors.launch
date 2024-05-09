@@ -1,10 +1,19 @@
+
 <launch>
-    <arg name="simulation" value="False" />
+    <!-- add venv -->
+    <arg name="venv" value="/home/quentin/Dev/argos3-ros-triangulation/venv/bin/python3" />
 
-    <arg name="resp_port" value="/dev/ttyACM1" />
-    <arg name="init_port" value="/dev/ttyACM0" />
+    <arg name="first_module_type" value="resp" />
+    <arg name="first_port" value="/dev/ttyACM1" />
 
-    <node pkg="ros_utils" type="odometry_republisher.py" name="odometry_republisher" output="screen" cwd="node" ></node>
-    <node pkg="ros_utils" type="sensor_measurements.py" name="resp_sensor_measurements" output="screen" cwd="node" args="resp $(arg resp_port)" ></node>
-    <node pkg="ros_utils" type="sensor_measurements.py" name="init_sensor_measurements" output="screen" cwd="node" args="init $(arg init_port)" ></node>
+    <arg name="second_module_type" value="init" />
+    <arg name="second_port" value="/dev/ttyACM2" />
+
+    <node pkg="experiments_utils" type="odometry_republisher.py" name="odometry_republisher" output="screen" cwd="node" launch-prefix="$(arg venv)" ></node>
+    <node pkg="experiments_utils" type="sensor_measurement.py" name="resp_sensor_measurement" output="screen" cwd="node" launch-prefix="$(arg venv)"
+        args="$(arg first_module_type) $(arg first_port)" ></node>
+    <node pkg="experiments_utils" type="sensor_measurement.py" name="init_sensor_measurement" output="screen" cwd="node" launch-prefix="$(arg venv)"
+        args="$(arg second_module_type) $(arg second_port)" ></node>
+
+    <node pkg="rosbag" type="record" name="record_sensors" args="record -o /tmp/sensor_data -a" ></node>
 </launch>

@@ -1,11 +1,9 @@
 #!/usr/bin/python3
-import datetime
-import signal
-import sys
 
+
+import sys
 import serial
 import rospy
-import tqdm
 from experiments_utils.msg import Manage, Distance, Distances
 
 from utils import DWM, parse_distances

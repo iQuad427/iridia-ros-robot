@@ -4,8 +4,8 @@
 import rospy
 from sensor_msgs.msg import Imu
 from nav_msgs.msg import Odometry
-from tf.transformations import euler_from_quaternion
 from math import sin, cos, atan2
+from utils import euler_from_quaternion
 
 
 class MessageRepublisher:
@@ -51,9 +51,7 @@ class MessageRepublisher:
                         self.initial_orientation.z,
                         self.initial_orientation.w
                     ])
-                    # print("yaw1 : ", yaw1)
-                    # print("yaw : ", yaw)
-                    if (delta_x != 0 and delta_y != 0):
+                    if delta_x != 0 and delta_y != 0:
                         self.initial_yaw = yaw - yaw1
             else:
                 # Calculate new x, y positions based on initial orientation
